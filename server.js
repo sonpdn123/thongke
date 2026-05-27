@@ -3,19 +3,34 @@ const cors = require('cors');
 const { Pool } = require('pg');
 
 const app = express();
-
 app.use(express.json());
-
-app.use(cors({
-    origin: '*'
-}));
+app.use(cors({ origin: '*' }));
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false 
-    }
+    ssl: { rejectUnauthorized: false }
 });
+
+// BỔ SUNG ĐOẠN NÀY: Tự động khởi tạo bảng nếu chưa tồn tại
+const initDB = async () => {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS daily_income (
+                record_date DATE PRIMARY KEY,
+                grab INT DEFAULT 0,
+                outside INT DEFAULT 0,
+                tip INT DEFAULT 0,
+                gas INT DEFAULT 0,
+                food INT DEFAULT 0,
+                total INT DEFAULT 0
+            );
+        `);
+        console.log("Kiem tra va san sang bang daily_income!");
+    } catch (err) {
+        console.error("Loi khi tao bang:", err.message);
+    }
+};
+initDB(); // Gọi hàm chạy ngay khi server bật
 
 app.get('/api/income', async (req, res) => {
     try {
