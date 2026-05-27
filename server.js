@@ -6,6 +6,8 @@ const app = express();
 app.use(express.json());
 app.use(cors({ origin: '*' }));
 
+console.log("Trang thai DATABASE_URL:", process.env.DATABASE_URL ? "Da thiet lap" : "Chua thiet lap (RONG)");
+
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
@@ -26,7 +28,7 @@ const initDB = async () => {
         `);
         console.log("Kiem tra va san sang bang daily_income!");
     } catch (err) {
-        console.error("Loi khi tao bang:", err.message);
+        console.error("Loi khi tao bang:", err);
     }
 };
 
@@ -39,8 +41,8 @@ app.get('/api/income', async (req, res) => {
         `);
         res.json(result.rows);
     } catch (err) {
-        console.error("Loi khi lay du lieu:", err.message); 
-        res.status(500).json({ error: err.message });
+        console.error("Loi khi lay du lieu:", err); 
+        res.status(500).json({ error: "Loi Server" });
     }
 });
 
@@ -62,8 +64,8 @@ app.post('/api/income', async (req, res) => {
         await pool.query(query, [record_date, grab, outside, tip, gas, food, total]);
         res.json({ message: 'Luu thong tin thanh cong' });
     } catch (err) {
-        console.error("Loi khi ghi du lieu:", err.message); 
-        res.status(500).json({ error: err.message });
+        console.error("Loi khi ghi du lieu:", err); 
+        res.status(500).json({ error: "Loi Server" });
     }
 });
 
@@ -72,8 +74,8 @@ app.delete('/api/income/:date', async (req, res) => {
         await pool.query('DELETE FROM daily_income WHERE record_date = $1', [req.params.date]);
         res.json({ message: 'Xoa thong tin thanh cong' });
     } catch (err) {
-        console.error("Loi khi xoa du lieu:", err.message); 
-        res.status(500).json({ error: err.message });
+        console.error("Loi khi xoa du lieu:", err); 
+        res.status(500).json({ error: "Loi Server" });
     }
 });
 
