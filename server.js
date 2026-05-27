@@ -11,7 +11,6 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false }
 });
 
-// BỔ SUNG ĐOẠN NÀY: Tự động khởi tạo bảng nếu chưa tồn tại
 const initDB = async () => {
     try {
         await pool.query(`
@@ -30,7 +29,6 @@ const initDB = async () => {
         console.error("Loi khi tao bang:", err.message);
     }
 };
-initDB(); // Gọi hàm chạy ngay khi server bật
 
 app.get('/api/income', async (req, res) => {
     try {
@@ -80,6 +78,9 @@ app.delete('/api/income/:date', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server dang chay tren port ${PORT}`);
+
+initDB().then(() => {
+    app.listen(PORT, () => {
+        console.log(`Server dang chay tren port ${PORT}`);
+    });
 });
