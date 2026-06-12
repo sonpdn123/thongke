@@ -4,12 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
-  }
-  ,
-  
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -18,5 +15,13 @@
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "pg": "^8.21.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sonpdn123/thongke.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sonpdn123/thongke/issues"
+  },
+  "homepage": "https://github.com/sonpdn123/thongke#readme"
 }
