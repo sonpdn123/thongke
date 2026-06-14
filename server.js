@@ -1,8 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
+const compression = require('compression');
 
 const app = express();
+app.use(compression());
 app.use(express.json());
 app.use(cors({ origin: '*' }));
 
@@ -31,23 +33,38 @@ const initDB = async () => {
             ADD COLUMN IF NOT EXISTS hao_mon INT DEFAULT 0,
             ADD COLUMN IF NOT EXISTS other_expense INT DEFAULT 0;
         `);
-        console.log("Kiem tra va san sang bang daily_income!");
+        await pool.query(`
+            CREATE INDEX IF NOT EXISTS idx_income_record_date ON daily_income(record_date);
+        `);
     } catch (err) {
-        console.error("Loi khi tao bang:", err);
+        console.error(err);
     }
 };
 
+app.get('/ping', (req, res) => {
+    res.status(200).send('OK');
+});
+
 app.get('/api/income', async (req, res) => {
     try {
-        const result = await pool.query(`
+        const { month, year } = req.query;
+        let query = `
             SELECT TO_CHAR(record_date, 'YYYY-MM-DD') as record_date, 
                    grab, outside, tip, gas, food, hao_mon, other_expense, total 
             FROM daily_income
-        `);
+        `;
+        const params = [];
+
+        if (month && year) {
+            query += ` WHERE TO_CHAR(record_date, 'YYYY-MM') = $1`;
+            const formattedMonth = String(month).padStart(2, '0');
+            params.push(`${year}-${formattedMonth}`);
+        }
+
+        const result = await pool.query(query, params);
         res.json(result.rows);
     } catch (err) {
-        console.error("Loi khi lay du lieu:", err); 
-        res.status(500).json({ error: "Loi Server" });
+        res.status(500).json({ error: "Server Error" });
     }
 });
 
@@ -69,27 +86,23 @@ app.post('/api/income', async (req, res) => {
                 total = EXCLUDED.total;
         `;
         await pool.query(query, [record_date, grab, outside, tip, gas, food, hao_mon, other_expense, total]);
-        res.json({ message: 'Luu thong tin thanh cong' });
+        res.json({ message: 'Success' });
     } catch (err) {
-        console.error("Loi khi ghi du lieu:", err); 
-        res.status(500).json({ error: "Loi Server" });
+        res.status(500).json({ error: "Server Error" });
     }
 });
 
 app.delete('/api/income/:date', async (req, res) => {
     try {
         await pool.query('DELETE FROM daily_income WHERE record_date = $1', [req.params.date]);
-        res.json({ message: 'Xoa thong tin thanh cong' });
+        res.json({ message: 'Success' });
     } catch (err) {
-        console.error("Loi khi xoa du lieu:", err); 
-        res.status(500).json({ error: "Loi Server" });
+        res.status(500).json({ error: "Server Error" });
     }
 });
 
 const PORT = process.env.PORT || 3000;
 
 initDB().then(() => {
-    app.listen(PORT, () => {
-        console.log(`Server dang chay tren port ${PORT}`);
-    });
+    app.listen(PORT, () => {});
 });
