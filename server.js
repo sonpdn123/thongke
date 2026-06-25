@@ -41,8 +41,14 @@ const initDB = async () => {
     }
 };
 
-app.get('/ping', (req, res) => {
-    res.status(200).send('OK');
+app.get('/ping', async (req, res) => {
+    try {
+        await pool.query('SELECT 1');
+        res.status(200).send('OK');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Database Error');
+    }
 });
 
 app.get('/api/income', async (req, res) => {
